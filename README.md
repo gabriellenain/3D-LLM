@@ -1,273 +1,144 @@
-<br />
-<p align="center">
-  <h1 align="center">3D-LLM: Injecting the 3D World into Large Language Models (NeurIPS 2023 Spotlight) </h1>
-  <p align="center">
-    <a href="https://evelinehong.github.io">Yining Hong</a>,
-    <a href="https://haoyuzhen.com">Haoyu Zhen</a>,
-    <a href="https://peihaochen.github.io">Peihao Chen</a>,
-    <a href="https://zsh2000.github.io">Shuhong Zheng</a>,
-    <a href="https://yilundu.github.io">Yilun Du</a>,
-    <a href="https://zfchenunique.github.io">Zhenfang Chen</a>,
-    <a href="https://people.csail.mit.edu/ganchuang">Chuang Gan</a>
-  </p>
-  <p align="center">
-    <a href='https://arxiv.org/abs/2307.12981'>
-      <img src='https://img.shields.io/badge/Paper-PDF-red?style=flat&logo=arXiv&logoColor=red' alt='Paper PDF'>
-    </a>
-    <a href='https://vis-www.cs.umass.edu/3dllm/' style='padding-left: 0.5rem;'>
-      <img src='https://img.shields.io/badge/Project-Page-blue?style=flat&logo=Google%20chrome&logoColor=blue' alt='Project Page'>
-    </a>
-  </p>
-  <p align="center">
-    <img src="figs/pipeline.png" alt="Logo" width="80%">
-  </p>
-</p>
-
-3D-LLM is the first Large Language Model that could take 3D representations as inputs. It is able to handle both object (e.g., objaverse) and scene data (e.g., scannet & hm3d). 
-
-## Installation
-Install [salesforce-lavis](https://github.com/salesforce/LAVIS)
-
-```shell
-$ conda create -n lavis python=3.8
-$ conda activate lavis
-
-$ git clone https://github.com/salesforce/LAVIS.git SalesForce-LAVIS
-$ cd SalesForce-LAVIS
-$ pip install -e .
-
-$ pip install positional_encodings
-```
+# 3D-LLM Colab Benchmark
 
-## Checkpoints
-### Pretraining Checkpoints
-[Pretrained checkpoints](https://drive.google.com/file/d/1tiis8mOdZGBzmR7vgZtRE4Ni_2FE4nTr/view?usp=drive_link) are released (Please use v2!)
+## Repository overview
 
-### Finetuning Checkpoints
-[Finetuning checkpoints](https://drive.google.com/drive/folders/1RKP1cz6R6H8YziEc4f3MHW9dCCXQChbA?usp=drive_link) for [ScanQA](https://drive.google.com/file/d/1sPynAO8pI_RPR4pwWTrx8weDTdMPsqtW/view?usp=drive_link), [SQA3d](https://drive.google.com/file/d/1Ka9TWv6cs6h-pPaaQG1auIiQma2xbNFk/view?usp=drive_link), and [3DMV_VQA](https://drive.google.com/file/d/1_h2wPPGO64HY5LUcA1bD8DlZx3WCsY8b/view?usp=drive_link) are released.
-The results are better than preprint-version paper. We will update the camera-ready paper to the arxiv soon.
+This repository is a personal fork and adaptation of the original **3D-LLM** project, whose goal is to inject **3D representations into a large language model** for tasks such as object- and scene-level question answering, captioning, and grounded 3D understanding.
 
-## Quick Start: Inference
-Download the objaverse subset features [here](https://drive.google.com/file/d/1mJZONfWREfIUAPYXP65D65uS2EoplAfR/view?usp=drive_link). Download the [pretrained checkpoints](https://drive.google.com/drive/folders/1urI2I3S8SgLD8L9brl4ae1Mul_yhCxJe?usp=drive_link). For more details, please refer to `3DLLM_BLIP2-base/DEMO.md`.
-```
-$ cd 3DLLM_BLIP2-base
-$ conda activate lavis
+At a high level, the repo contains three main layers:
 
-python inference.py # for objects
-python inference.py --mode room # for scenes
-```
-TODO: huggingface auto load checkpoint.
+- **Core inference / model code** in `3DLLM_BLIP2-base/`  
+  This is the main implementation of the released BLIP2–FlanT5-based 3D-LLM pipeline.
 
-## Finetuning
-Finetuning config yaml files that need to be changed are in [this directory](https://github.com/UMass-Foundation-Model/3D-LLM/tree/main/3DLLM_BLIP2-base/lavis/projects/blip2/train)
-1. Download the [pretrained checkpoints](https://drive.google.com/file/d/1tiis8mOdZGBzmR7vgZtRE4Ni_2FE4nTr/view?usp=drive_link). Modify the "resume_checkpoint_path" path in the yaml files
-2. Download the [questions](https://drive.google.com/drive/folders/14MDiDl6Cch_B27Q0aZgdElhAEOBBpn2o?usp=drive_link), modify the "annotations" path in the yaml files
-3. Download the [scannet features](https://drive.google.com/drive/folders/1H1SKZsK_XpMkXntwhY4BqSxsGCRP8cgp?usp=drive_link)  or [3dmv-vqa features](https://drive.google.com/drive/folders/1NdFKKn_IZxGezi6fXA60rF1uxTOmhOet?usp=drive_link). Modify the path (both train and val) in lavis/datasets/datasets/threedvqa_datasets.py
-4.
-```
-$ cd 3DLLM_BLIP2-base
+- **3D-language data and feature generation utilities** in `3DLanguage_data/` and `three_steps_3d_feature/`  
+  These folders correspond to the original data-generation logic used to build 3D features from rendered multi-view observations.
 
-$ conda activate lavis
+- **Notebook-based experimentation**
+  The present notebook is a lightweight, reproducible entry point designed to make the released model easier to test in practice.
 
-python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path lavis/projects/blip2/train/<finetune_yaml_file>
-```
-You can also load the finetuning checkpoints [here](https://drive.google.com/drive/folders/1RKP1cz6R6H8YziEc4f3MHW9dCCXQChbA?usp=drive_link).
+## What this notebook does
 
-5.**Calculating scores**
-```
-cd calculate_scores
-python calculate_score_<task>.py --folder <your result dir> --epoch <your epoch>
-```
-please also modify the feature and question path in the scripts
+This notebook is a **minimal, self-contained Colab benchmark** for the released 3D-LLM checkpoint.
 
-TODO: huggingface auto load checkpoint.
+Its purpose is **not** to reproduce the full original training pipeline.  
+Instead, it provides a practical way to:
 
+1. run the released model in a modern Colab environment,
+2. make single-GPU inference tractable,
+3. and probe what the model actually depends on at inference time.
 
-## Data
-All data will be gradually released in [Google Drive](https://drive.google.com/drive/folders/188Yd7tmiUfyct-dVMpkQ8q_tnqkb-4bo?usp=sharing) and [Huggingface](https://huggingface.co/datasets/ShuhongZheng/3D-LLM) (All files are released in Google Drive first and then Huggingface. Please refer to the Google Drive for file structure)
+In particular, the notebook focuses on whether the model is most sensitive to:
 
-### Pretraining Data
-We are still cleaning the grounding & navigation part. All other pre-training data are released.
-#### Object Data
-  &emsp;Language annotations of object data released [here](https://drive.google.com/file/d/17K1ZGb1HpvPj36a84GefGQK7DOkRp_32/view?usp=sharing).
+- the semantic point features,
+- the alignment between features and 3D points,
+- or the exact wording of the prompt.
 
-  &emsp;For downloading Objaverse data, please refer to [Objaverse website](https://objaverse.allenai.org/).
-  
-  &emsp;To get 3D features and point clouds of the Objaverse data, please refer to [Step1](https://github.com/UMass-Foundation-Model/3D-LLM/blob/main/README.md#step1-render-images-from-different-views-of-a-scene) and [Step3](https://github.com/UMass-Foundation-Model/3D-LLM/blob/main/README.md#step3-3d-feature-construction-from-rendered-images) of 3DLanguage Data generation - ChatCaptioner based
+## Notebook workflow
 
-  &emsp;A small set of objaverse features is released [here](https://drive.google.com/file/d/1mJZONfWREfIUAPYXP65D65uS2EoplAfR/view?usp=drive_link).
-  
-  &emsp;TODO: We will probably release the whole set of Objaverse 3D features 
-#### Scene Data
- &emsp; [Language data released here](https://drive.google.com/file/d/18AVyAWwMwqP8nyZQfTpEMw1Wfhghjw0b/view?usp=drive_link). 
- 
- &emsp; 3D features and point clouds (~250G) are released [here](https://drive.google.com/drive/folders/1bJpK00UFRZGH7tdx3PaqDrrTfHNP6B2K?usp=drive_link). However, if you want to explore generating the features yourself, please refer to the Three-step 3D Feature Extraction part [here](https://github.com/UMass-Foundation-Model/3D-LLM#three-step-3d-feature-extraction). Please use v2 to be consistent with the checkpoints (and also result in better performances).
+The notebook follows the pipeline below:
 
- &emsp;chat: 73103. task: 84531
+1. **Environment setup**
+   - checks that Colab is running with a GPU,
+   - clones this GitHub repository,
+   - installs the dependencies needed for 3D-LLM inference.
 
-### Finetuning Data
-3D features and point clouds of Scannet (used for finetuning ScanQA and SQA3D) are released in [here](https://drive.google.com/drive/folders/1CsEt48jj5uCyelGcXXJBkGH86QYeCE8D?usp=drive_link). 3D features and point clouds of 3DMV-VQA are released [here](https://drive.google.com/drive/folders/1NdFKKn_IZxGezi6fXA60rF1uxTOmhOet?usp=drive_link) (3DMV-VQA data will be further updated for a clearer structure).
+2. **Checkpoint and data setup**
+   - downloads the released pretrained checkpoint,
+   - downloads a small Objaverse subset with precomputed point features,
+   - normalizes the extracted directory layout for inference.
 
-All questions can be found [here](https://drive.google.com/drive/folders/14MDiDl6Cch_B27Q0aZgdElhAEOBBpn2o?usp=drive_link).
+3. **Compatibility patches**
+   - applies small code fixes so the original 3D-LLM / LAVIS stack runs cleanly in a modern Colab environment.
 
+4. **Model loading**
+   - loads the BLIP2–FlanT5-based 3D-LLM checkpoint,
+   - prepares the text processor and inference utilities,
+   - keeps the setup inference-oriented rather than training-oriented.
 
+5. **Sanity-check inference**
+   - runs the model on one example object,
+   - verifies that the full 3D-to-text pipeline is working end to end.
 
-## 3DLanguage Data Generation
+6. **Robustness probes**
+   - evaluates how stable the answers are under controlled feature perturbations,
+   - evaluates how stable the answers are under semantically similar prompt rephrasings.
 
-### ChatCaptioner based / Three-step 3D Feature Extraction (Objaverse)
-#### Step1: render images from different views of a scene
-Follow the instruction in ``3DLanguage_data/ChatCaptioner_based/objaverse_render/README.md`` for installation. 
+7. **Result aggregation**
+   - summarizes the results with simple agreement metrics,
+   - exports CSV files for later analysis, tables, and figures.
 
-The following code will render images of a objaverse scene (e.g. f6e9ec5953854dff94176c36b877c519). The rendered images will be saved at ``3DLanguage_data/ChatCaptioner_based/objaverse_render/output``.
-(Please refer to ``3DLanguage_data/ChatCaptioner_based/objaverse_render/README.md`` for more details about the command)
+## Experimental framing
 
-```shell
-$ cd ./3DLanguage_data/ChatCaptioner_based/objaverse_render
+The benchmark is intentionally narrow and controlled.
 
-$ {path/to/blender} -b -P render.py -noaudio --disable-crash-handler -- --uid f6e9ec5953854dff94176c36b877c519
+We work with a fixed subset of Objaverse objects, each represented by:
 
-```
+- a point cloud $P \in \mathbb{R}^{n \times 3}$,
+- aligned point features $F \in \mathbb{R}^{n \times d}$,
 
-#### Step2: generate caption for this objaverse scene
-Installation: 
+with a capped point budget per object to keep inference practical on a single GPU.
 
-Please follow [ChatCaptioner](https://github.com/Vision-CAIR/ChatCaptioner) to install the environment/
+For each object, the notebook compares the baseline generation to generations obtained under two families of probes:
 
+### 1. Feature robustness
+The point coordinates are kept fixed while the input features are modified.
 
-The following code will read the rended images of an objaverse scene (e.g., f6e9ec5953854dff94176c36b877c519) and generate scene caption at ``3DLanguage_data/ChatCaptioner_based/output``
+Typical variants include:
+- `baseline`
+- `gaussian_005`
+- `gaussian_020`
+- `shuffle_feat`
+- `zero_feat`
 
-```shell
-$ cd ./3DLanguage_data/ChatCaptioner_based
+These perturbations test whether the model depends on:
+- precise low-level feature values,
+- feature-to-point alignment,
+- or simply the presence of global semantic content.
 
-$ python chatcaption.py --specific_scene f6e9ec5953854dff94176c36b877c519
-```
+### 2. Prompt robustness
+The 3D input is kept fixed while the user query is paraphrased.
 
-#### Step3: 3D feature construction from rendered images
+This tests whether the model behaves like a stable 3D understanding system, or whether its outputs change significantly under small linguistic rewordings.
 
-Follow the instruction in ``3DLanguage_data/ChatCaptioner_based/gen_features/README.md`` for extracting 3D features from rendered images.
-```shell
-$ cd ./3DLanguage_data/ChatCaptioner_based/gen_features
-```
+## Evaluation metrics
 
+For each object, perturbation, and prompt, the generated answer is compared to the corresponding baseline answer.
 
-### Box-Demonstration-Instruction based
-TODO
+The notebook reports simple consistency metrics such as:
 
-### Revision based
-TODO
+- **Exact Match**
+- **Sequence Similarity**
+- **Jaccard similarity**
 
-## Three-step 3D Feature Extraction (Scene)
-This section is for constructing 3D features for scene data. If you already downloaded our released scene data, please skip this section.
-### First step
-Installation: 
+These metrics should be interpreted as **agreement-with-baseline** measures, not as absolute task accuracy.
 
-Please follow [Mask2Former](https://github.com/facebookresearch/Mask2Former) to install the environment and download the [pretrained weight](https://dl.fbaipublicfiles.com/maskformer/mask2former/coco/instance/maskformer2_swin_large_IN21k_384_bs16_100ep/model_final_e5f453.pkl) to the current directory
-if extracting the masks with [Mask2Former](https://openaccess.thecvf.com/content/CVPR2022/papers/Cheng_Masked-Attention_Mask_Transformer_for_Universal_Image_Segmentation_CVPR_2022_paper.pdf).
+## How to interpret this notebook
 
-Please follow [Segment Anything](https://github.com/facebookresearch/segment-anything) to install the environment and download the [pretrained weight](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth) to the current directory if extracting the masks with [SAM](https://arxiv.org/abs/2304.02643).
+This notebook is best understood as an **inference-time probing benchmark**.
 
-Extract masks with Mask2Former:
+It does **not** claim to:
+- retrain 3D-LLM,
+- reproduce the original paper’s large-scale results,
+- or fully isolate geometric reasoning.
 
-```shell
-$ cd ./three_steps_3d_feature/first_step
+Instead, it is meant to answer a more practical question:
 
-$ python maskformer_mask.py --scene_dir_path DATA_DIR_WITH_RGB_IMAGES --save_dir_path DIR_YOU_WANT_TO_SAVE_THE_MASKS
-```
+> Once the released checkpoint is made runnable on a single GPU, what kinds of information does it appear to rely on most?
 
-Extract masks with Segment Anything:
+That makes this notebook useful for:
+- reproducible sanity checks,
+- lightweight scientific probing,
+- qualitative inspection,
+- and report-ready experiments on robustness and failure modes.
 
-```shell
-$ cd ./three_steps_3d_feature/first_step
+## Scope and limitations
 
-$ python sam_mask.py --scene_dir_path DATA_DIR_WITH_RGB_IMAGES --save_dir_path DIR_YOU_WANT_TO_SAVE_THE_MASKS
-```
+This notebook only studies the **released inference stack** in a controlled object-level regime.
 
-After the first step, we are expected to obtain a directory of masks (specified by ``--save_dir_path``) that contains extracted masks for
-multi-view images of the scenes.
+Therefore, conclusions from these experiments should be read carefully:
 
-### Second step
-Note: BLIP features are for LAVIS(BLIP2), CLIP features are for open-flamingo.
+- they are **inference-only**,
+- they depend on **precomputed features** rather than end-to-end training,
+- and they probe **local robustness properties**, not full 3D reasoning ability.
 
-Installation: The same as the following ``3D-LLM_BLIP2-based`` section to install [salesforce-lavis](https://github.com/salesforce/LAVIS).
-
-There are four options: (1) Extract CLIP feature with Mask2Former masks; (2) Extract CLIP feature with SAM masks;
-(3) Extract BLIP feature with Mask2Former masks; (4) Extract BLIP feature with SAM masks.
-
-Extract 2D CLIP features with Mask2Former masks:
-```shell
-$ cd ./three_steps_3d_feature/second_step/
-
-$ python clip_maskformer.py --scene_dir_path DATA_DIR_WITH_RGB_IMAGES --mask_dir_path MASK_DIR_FROM_1ST_STEP --save_dir_path DIR_YOU_WANT_TO_SAVE_THE_FEAT
-```
-
-For the other options, the scripts are in similar format.
-
-After the second step, we are expected to obtain a directory of features (specified by ``--save_dir_path``) that contains 2D features for
-multi-view images of the scenes.
-
-### Third step
-#### Direct Reconstruction
-Installation:
-
-Please install the [Habitat environment](https://github.com/facebookresearch/habitat-lab/tree/challenge-2022).
-
-Reconstruct 3D feature from multi-view 2D features:
-
-```shell
-$ cd ./three_steps_3d_feature/third_step/
-
-$ python sam_mask.py --data_dir_path DATA_DIR_WITH_RGB_IMAGES --depth_dir_path DATA_DIR_WITH_DEPTH_IMAGES --feat_dir_path FEATURE_DIR_FROM_2ND_STEP
-```
-
-After the third step, we are expected to obtain two files (``pcd_pos.pt`` and ``pcd_feat.pt``) for each room inside the corresponding RGB directory.
-``pcd_pos.pt`` contains the point positions of the 3D point cloud (shape: ``N * 3``). ``pcd_feat.pt`` contains the point features of the 3D point cloud (shape: ``N * n_dim``).
-``N`` is the number of sampled points in the point cloud (default: 300000) and ``n_dim`` is the feature dimension (1024 for CLIP feature, 1408 for BLIP feature).
-
-#### GradSLAM (Feature Fusion)
-Refer to [Concept Fusion](https://github.com/concept-fusion/concept-fusion).
-
-We will also release our reproduced version of Concept Fusion for our feature generation (we reproduced the paper before their official release).
-
-#### Neural Field
-Please refer to [3D-CLR](https://github.com/evelinehong/3D-CLR-Official) repository.
-
-## Pre-training
-
-```shell
-$ cd 3DLLM_BLIP2-base
-
-$ conda activate lavis
-# use facebook/opt-2.7b:
-$ TODO
-# use flant5
-$ python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path lavis/projects/blip2/train/pretrain.yaml
-```
-## 3D-LLM_flamingo-based
-TODO.
-
-## Citation
-
-If you find our work useful, please consider citing:
-
-```
-@article{3dllm,
- author = {Hong, Yining and Zhen, Haoyu and Chen, Peihao and Zheng, Shuhong and Du, Yilun and Chen, Zhenfang and Gan, Chuang},
- title = {3D-LLM: Injecting the 3D World into Large Language Models},
- journal = {NeurIPS},
- year = {2023},
-} 
-```
-
-### Acknowledgements
-
-https://github.com/salesforce/LAVIS
-
-https://github.com/facebookresearch/Mask2Former
-
-https://github.com/facebookresearch/segment-anything
-
-https://github.com/mlfoundations/open_flamingo
-
-https://github.com/concept-fusion/concept-fusion
-
-https://github.com/evelinehong/3D-CLR-Official
+A stable answer under mild perturbation does not prove deep geometric understanding; likewise, prompt sensitivity does not imply total failure.  
+The notebook is designed as a compact empirical probe, not as a definitive benchmark of 3D intelligence.
